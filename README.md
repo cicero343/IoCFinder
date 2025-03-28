@@ -26,7 +26,3 @@ Tools such as YARA are typically used for proactive threat hunting, where you do
 5) File Name
 6) Strings search
 7) File Extension search
-   
-![iocFinder](https://github.com/user-attachments/assets/fc387ab5-f72f-4047-a177-ca39f08c1cd8)
-
-![iocFinder2](https://github.com/user-attachments/assets/3490989e-1b63-4627-80f3-860f448130e9)
