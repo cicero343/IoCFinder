@@ -1,5 +1,5 @@
 # IoCFinder
-Introducing “IoC Finder” - A Simple Script to Find Files Matching IoC Values
+Introducing “IoC Finder” - A Simple, Interactive Script to Find Files Matching IoC Values
 
 Available as a PowerShell or Bash script.
 
