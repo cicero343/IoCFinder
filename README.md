@@ -3,7 +3,7 @@ Introducing “IoC Finder” - A Simple Script to Find Files Matching IoC Values
 
 Available as a PowerShell or Bash script.
 
-![iocFinder2](https://github.com/user-attachments/assets/651b6b0c-c26e-462f-8bea-08c3a11c053c)
+![iocFinder2 - Copy](https://github.com/user-attachments/assets/52814f3f-36a3-4e39-9d49-c762ff611190)
 
 # What is an “Indicator of Compromise” (IoC)?
 
