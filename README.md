@@ -1,6 +1,8 @@
 # IoCFinder
 Introducing “IoC Finder” - A Simple Script to Find Files Matching IoC Values
 
+Available as a PowerShell or Bash script.
+
 # What is an “Indicator of Compromise” (IoC)?
 
 An IoC is esentially an attribute of a file (such as a hash, file name or string) that matches a known malicious file.
