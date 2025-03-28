@@ -3,6 +3,8 @@ Introducing “IoC Finder” - A Simple Script to Find Files Matching IoC Values
 
 Available as a PowerShell or Bash script.
 
+![iocFinder2](https://github.com/user-attachments/assets/651b6b0c-c26e-462f-8bea-08c3a11c053c)
+
 # What is an “Indicator of Compromise” (IoC)?
 
 An IoC is esentially an attribute of a file (such as a hash, file name or string) that matches a known malicious file.
@@ -26,5 +28,3 @@ Tools such as YARA are typically used for proactive threat hunting, where you do
 5) File Name
 6) Strings search
 7) File Extension search
-   
-![iocFinder2](https://github.com/user-attachments/assets/651b6b0c-c26e-462f-8bea-08c3a11c053c)
