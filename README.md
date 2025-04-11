@@ -37,4 +37,4 @@ File Data:
 Executable Files:
 
 9) Metadata Search (Executable Files only)
-10) Authenticode Signature Check (Unsigned/Signed - WINDOWS ONLY)
+10) Authenticode Signature Check (Unsigned Executables - WINDOWS ONLY)
