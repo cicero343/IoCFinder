@@ -35,5 +35,6 @@ File Data:
 8) Files Recently Created/Accessed/Modified
 
 Executable Files:
+
 9) Metadata Search (Executable Files only)
 10) Authenticode Signature Check (Unsigned/Signed - WINDOWS ONLY)
