@@ -34,7 +34,7 @@ perform_search() {
     echo ""
     echo "Executable Files:"
     echo "9. Metadata Search (Executable Files only)"
-    echo "10. Authenticode Signature Check (Unsigned/Signed - WINDOWS ONLY)"
+    echo "10. Authenticode Signature Check (Unsigned Executables - WINDOWS ONLY)"
     echo ""
 
     read -p "Enter your choice (1 - 10): " choice
