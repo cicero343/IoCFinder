@@ -21,10 +21,18 @@ Tools such as YARA are typically used for proactive threat hunting, where you do
 
 # Search Options
 
+Hashes:
 1) MD5 Hash
 2) SHA-1 Hash
 3) SHA-256 Hash
-4) File Size (in bytes)
-5) File Name
-6) Strings search
-7) File Extension search
+
+File Data:
+4) File Name
+5) File Extension Search
+6) File Size (in bytes)
+7) Strings search
+8) Files Recently Created/Accessed/Modified
+
+Executable Files:
+9) Metadata Search (Executable Files only)
+10) Authenticode Signature Check (Unsigned/Signed - WINDOWS ONLY)
