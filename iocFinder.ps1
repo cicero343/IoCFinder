@@ -1,4 +1,4 @@
-# PowerShell Script to Search for Files by MD5, SHA-1, SHA-256, File Size, File Name, Strings, or File Extension
+# PowerShell Script to Search for Files by MD5, SHA-1, SHA-256, File Size, File Name, Strings, File Extension, Executable Metadata, or Authenticode Signature
 
 $asciiArt = @"
   ___       ____   _____ _           _           
@@ -6,7 +6,7 @@ $asciiArt = @"
   | |/ _ \| |     | |_  | | '_ \ / _` |/ _ \ '__|
   | | (_) | |___  |  _| | | | | | (_| |  __/ |   
  |___\___/ \____| |_|   |_|_| |_|\__,_|\___|_|   
- 
+
 "@
 Write-Host $asciiArt
 Write-Host "Hi, I'm IoC Finder, your pocket-sized search tool! What directory should I scan for Indicators of Compromise?"
@@ -15,68 +15,132 @@ function Choose-Directory {
     return Read-Host "Enter the directory to search (e.g., C:\Path\To\Search)"
 }
 
+# Helper function for reading and validating date input (DD/MM/YYYY)
+function Get-DateInput {
+    param(
+        [string]$prompt
+    )
+    $dateInput = Read-Host $prompt
+    if ($dateInput -match '^\d{2}/\d{2}/\d{4}$') {
+        return $dateInput
+    }
+    else {
+        Write-Host "Invalid date format. Please enter the date in DD/MM/YYYY format."
+        return $null
+    }
+}
+
+# Helper function to convert a string to DateTime
+function Convert-ToDateTime {
+    param (
+        [string]$dateStr
+    )
+    return [datetime]::ParseExact($dateStr, 'dd/MM/yyyy', $null)
+}
+
 function Perform-Search {
     param (
         [string]$path
     )
-
     $start = $true
 
     while ($start) {
-        Write-Host "What would you like to search for?"
+        Write-Host "`nWhat would you like to search for?"
+        Write-Host "`nHashes:"
         Write-Host "1. MD5 Hash"
         Write-Host "2. SHA-1 Hash"
         Write-Host "3. SHA-256 Hash"
-        Write-Host "4. File Size (in bytes)"
-        Write-Host "5. File Name"
-        Write-Host "6. Strings Search"
-        Write-Host "7. File Extension Search"
-        $choice = Read-Host "Enter your choice (1, 2, 3, 4, 5, 6, or 7)"
+        
+        Write-Host "`nFile Data:"
+        Write-Host "4. File Name"
+        Write-Host "5. File Extension Search"
+        Write-Host "6. File Size (in bytes)"
+        Write-Host "7. Strings Search"
+        Write-Host "8. Files Recently Created/Accessed/Modified"
 
-        if ($choice -eq "1") {
-            $hash = Read-Host "Enter the MD5 hash to search for"
-            Get-ChildItem -Path $path -Recurse -File | ForEach-Object {
-                $fileHash = Get-FileHash $_.FullName -Algorithm MD5
-                if ($fileHash.Hash -eq $hash) {
-                    Write-Host "Match Found: $($_.FullName)"
+        Write-Host "`nExecutable Files:"
+        Write-Host "9. Metadata Search (Executable Files only)"
+        Write-Host "10. Authenticode Signature Check (Unsigned/Signed)"
+
+        Write-Host ""
+
+        $choice = Read-Host "Enter your choice (1 - 10)"
+
+        if ($choice -eq "8") {
+            Write-Host "`nFiles Recently Created/Accessed/Modified"
+            $dateStr = Get-DateInput "Enter the date (DD/MM/YYYY):"
+            if ($dateStr) {
+                $date = Convert-ToDateTime $dateStr
+                Write-Host "`nSearching for files on $dateStr..."
+
+                # Search for files matching the created, accessed, or modified date
+                $createdFiles = Get-ChildItem -Path $path -Recurse -File | Where-Object { $_.CreationTime.Date -eq $date.Date }
+                $accessedFiles = Get-ChildItem -Path $path -Recurse -File | Where-Object { $_.LastAccessTime.Date -eq $date.Date }
+                $modifiedFiles = Get-ChildItem -Path $path -Recurse -File | Where-Object { $_.LastWriteTime.Date -eq $date.Date }
+
+                # Display headers with color
+                Write-Host "`n" -ForegroundColor Cyan
+                Write-Host "Created Files: " -ForegroundColor Green
+                if ($createdFiles) {
+                    $createdFiles | ForEach-Object {
+                        Write-Host "  $($_.FullName)" -ForegroundColor Yellow
+                    }
+                } else {
+                    Write-Host "  No files found." -ForegroundColor Red
+                }
+
+                Write-Host "`nAccessed Files: " -ForegroundColor Green
+                if ($accessedFiles) {
+                    $accessedFiles | ForEach-Object {
+                        Write-Host "  $($_.FullName)" -ForegroundColor Yellow
+                    }
+                } else {
+                    Write-Host "  No files found." -ForegroundColor Red
+                }
+
+                Write-Host "`nModified Files: " -ForegroundColor Green
+                if ($modifiedFiles) {
+                    $modifiedFiles | ForEach-Object {
+                        Write-Host "  $($_.FullName)" -ForegroundColor Yellow
+                    }
+                } else {
+                    Write-Host "  No files found." -ForegroundColor Red
                 }
             }
         }
-        elseif ($choice -eq "2") {
-            $hash = Read-Host "Enter the SHA-1 hash to search for"
+        elseif ($choice -in "1", "2", "3") {
+            $alg = if ($choice -eq "1") { "MD5" } elseif ($choice -eq "2") { "SHA1" } else { "SHA256" }
+            $hash = Read-Host "Enter the $alg hash to search for"
             Get-ChildItem -Path $path -Recurse -File | ForEach-Object {
-                $fileHash = Get-FileHash $_.FullName -Algorithm SHA1
-                if ($fileHash.Hash -eq $hash) {
-                    Write-Host "Match Found: $($_.FullName)"
-                }
-            }
-        }
-        elseif ($choice -eq "3") {
-            $hash = Read-Host "Enter the SHA-256 hash to search for"
-            Get-ChildItem -Path $path -Recurse -File | ForEach-Object {
-                $fileHash = Get-FileHash $_.FullName -Algorithm SHA256
-                if ($fileHash.Hash -eq $hash) {
-                    Write-Host "Match Found: $($_.FullName)"
+                try {
+                    $fileHash = Get-FileHash $_.FullName -Algorithm $alg
+                    if ($fileHash.Hash -eq $hash) {
+                        Write-Host "Match Found: $($_.FullName)"
+                    }
+                } catch {
+                    Write-Host "Error processing: $($_.FullName) - $_"
                 }
             }
         }
         elseif ($choice -eq "4") {
-            $size = Read-Host "Enter the file size in bytes to search for"
-            Get-ChildItem -Path $path -Recurse -File | ForEach-Object {
-                if ($_.Length -eq $size) {
-                    Write-Host "Match Found: $($_.FullName)"
-                }
+            $fileName = Read-Host "Enter the file name (or part of it) to search for"
+            Get-ChildItem -Path $path -Recurse -File | Where-Object { $_.Name -like "*$fileName*" } | ForEach-Object {
+                Write-Host "Match Found: $($_.FullName)"
             }
         }
         elseif ($choice -eq "5") {
-            $fileName = Read-Host "Enter the file name (or part of it) to search for"
-            Get-ChildItem -Path $path -Recurse -File | ForEach-Object {
-                if ($_.Name -like "*$fileName*") {
-                    Write-Host "Match Found: $($_.FullName)"
-                }
+            $extension = Read-Host "Enter the file extension to search for (e.g., .exe, .dll, .log, .txt)"
+            Get-ChildItem -Path $path -Recurse -File -Filter "*$extension" | ForEach-Object {
+                Write-Host "Match Found: $($_.FullName)"
             }
         }
         elseif ($choice -eq "6") {
+            $size = Read-Host "Enter the file size in bytes to search for"
+            Get-ChildItem -Path $path -Recurse -File | Where-Object { $_.Length -eq $size } | ForEach-Object {
+                Write-Host "Match Found: $($_.FullName)"
+            }
+        }
+        elseif ($choice -eq "7") {
             $searchString = Read-Host "Enter the string to search for within files"
             Get-ChildItem -Path $path -Recurse -File | ForEach-Object {
                 try {
@@ -90,10 +154,51 @@ function Perform-Search {
                 }
             }
         }
-        elseif ($choice -eq "7") {
-            $extension = Read-Host "Enter the file extension to search for (e.g., .exe, .dll, .log, .txt)"
-            Get-ChildItem -Path $path -Recurse -File -Filter "*$extension" | ForEach-Object {
-                Write-Host "Match Found: $($_.FullName)"
+        elseif ($choice -eq "9") {
+            Write-Host "`nScanning for executable metadata..."
+            $searchTerm = Read-Host "Enter the keyword to search for in executable metadata (e.g., company name, product, version)"
+            $found = $false
+
+            Get-ChildItem -Path $path -Recurse -File | Where-Object {
+                $_.Extension -match "\.exe$|\.dll$"
+            } | ForEach-Object {
+                try {
+                    $info = $_.VersionInfo
+                    if ($info -and (
+                        $info.CompanyName -like "*$searchTerm*" -or
+                        $info.ProductName -like "*$searchTerm*" -or
+                        $info.FileDescription -like "*$searchTerm*" -or
+                        $info.OriginalFilename -like "*$searchTerm*" -or
+                        $info.FileVersion -like "*$searchTerm*" -or
+                        $info.ProductVersion -like "*$searchTerm*"
+                    )) {
+                        Write-Host "`nFile: $($_.FullName)"
+                        Write-Host "  Company: $($info.CompanyName)"
+                        Write-Host "  Product: $($info.ProductName)"
+                        Write-Host "  Description: $($info.FileDescription)"
+                        Write-Host "  Original Filename: $($info.OriginalFilename)"
+                        Write-Host "  File Version: $($info.FileVersion)"
+                        Write-Host "  Product Version: $($info.ProductVersion)"
+                        $found = $true
+                    }
+                } catch {
+                    # Ignore files without metadata
+                }
+            }
+
+            if (-not $found) {
+                Write-Host "No executable files found with metadata matching '$searchTerm'."
+            }
+        }
+        elseif ($choice -eq "10") {
+            Write-Host "`nScanning for Authenticode signature status..."
+
+            Get-ChildItem -Path $path -Recurse -File | Where-Object { $_.Extension -match "\.exe$|\.dll$" } | ForEach-Object {
+                $signature = Get-AuthenticodeSignature $_.FullName
+                if ($signature.Status -ne 'Valid') {
+                    Write-Host "`nInvalid or missing signature for file: $($_.FullName)"
+                    Write-Host "  Status: $($signature.Status)"
+                }
             }
         }
         else {
