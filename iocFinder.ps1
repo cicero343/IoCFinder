@@ -60,7 +60,7 @@ function Perform-Search {
 
         Write-Host "`nExecutable Files:"
         Write-Host "9. Metadata Search (Executable Files only)"
-        Write-Host "10. Authenticode Signature Check (Unsigned/Signed)"
+        Write-Host "10. Authenticode Signature Check (Unsigned Executables)"
 
         Write-Host ""
 
