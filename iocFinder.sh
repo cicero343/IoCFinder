@@ -11,7 +11,54 @@ EOF
 echo "Hi, I'm IoC Finder, your pocket-sized search tool! What directory should I scan for Indicators of Compromise?"
 
 choose_directory() {
-  read -p "Enter the directory to search (e.g., /path/to/search): " path
+  while true; do
+    echo ""
+    echo "Choose how to select the directory:"
+    echo "1) Select from GUI"
+    echo "2) Enter directory manually"
+    read -p "Enter your choice (1 or 2): " method
+
+    if [[ "$method" == "1" ]]; then
+      # MacOS
+      if [[ "$(uname)" == "Darwin" ]]; then
+        path=$(osascript -e 'POSIX path of (choose folder)' 2>/dev/null)
+        if [[ -z "$path" ]]; then
+          echo "No folder selected or GUI not available. Falling back to manual entry."
+          continue
+        fi
+        echo "Selected folder: $path"
+        break
+      # Linux
+      elif [[ "$(uname)" == "Linux" ]]; then
+        if command -v zenity >/dev/null 2>&1; then
+          path=$(zenity --file-selection --directory 2>/dev/null)
+          if [[ -z "$path" ]]; then
+            echo "No folder selected or GUI cancelled. Falling back to manual entry."
+            continue
+          fi
+          echo "Selected folder: $path"
+          break
+        else
+          echo "GUI selection not available (zenity not installed). Please enter directory manually."
+          continue
+        fi
+      else
+        echo "GUI folder selection not supported on this OS. Please enter directory manually."
+        continue
+      fi
+
+    elif [[ "$method" == "2" ]]; then
+      read -p "Enter the directory to search (e.g., /path/to/search): " path
+      if [[ -d "$path" ]]; then
+        break
+      else
+        echo "Invalid directory. Please try again."
+      fi
+
+    else
+      echo "Invalid choice. Please enter 1 or 2."
+    fi
+  done
 }
 
 perform_search() {
@@ -163,3 +210,4 @@ perform_search() {
 
 choose_directory
 perform_search
+
