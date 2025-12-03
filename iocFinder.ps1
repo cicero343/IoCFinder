@@ -11,8 +11,32 @@ $asciiArt = @"
 Write-Host $asciiArt
 Write-Host "Hi, I'm IoC Finder, your pocket-sized search tool! What directory should I scan for Indicators of Compromise?"
 
+# Function to choose directory either via GUI or manual input
 function Choose-Directory {
-    return Read-Host "Enter the directory to search (e.g., C:\Path\To\Search)"
+    Write-Host "`nSelect directory input method:"
+    Write-Host "[1] Browse via GUI"
+    Write-Host "[2] Enter path manually"
+
+    $method = Read-Host "Enter 1 or 2"
+
+    if ($method -eq "1") {
+        Add-Type -AssemblyName System.Windows.Forms
+        $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
+        $folderBrowser.Description = "Select the directory to search"
+        $folderBrowser.ShowNewFolderButton = $false
+
+        if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            return $folderBrowser.SelectedPath
+        } else {
+            Write-Host "No folder selected. Exiting." -ForegroundColor Red
+            exit
+        }
+    } elseif ($method -eq "2") {
+        return Read-Host "Enter the directory to search (e.g., C:\Path\To\Search)"
+    } else {
+        Write-Host "Invalid selection. Exiting." -ForegroundColor Red
+        exit
+    }
 }
 
 # Helper function for reading and validating date input (DD/MM/YYYY)
